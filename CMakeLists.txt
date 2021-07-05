@@ -1,6 +1,9 @@
-cmake_minimum_required(VERSION 2.4)
+cmake_minimum_required(VERSION 3.1)
 
 project(netz LANGUAGES CXX)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_library(netz INTERFACE)
 target_include_directories(netz INTERFACE include/)
