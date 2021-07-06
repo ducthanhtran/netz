@@ -7,24 +7,75 @@
 namespace netz
 {
 
-struct OutEdge
-{
-    std::size_t target;
-};
-
 class AdjacencyList
 {
 public:
-    AdjacencyList() noexcept { }
-    AdjacencyList(const std::size_t numVertices) : m_adjList(numVertices) { }
+
+    struct Vertex
+    {
+        std::vector<std::size_t> neighbors;
+    };
+
+    struct Edge
+    {
+        std::size_t source;
+        std::size_t target;
+        Edge(const std::size_t source, const std::size_t target) : source(source), target(target) { }
+        bool operator<=>(const Edge&) const = default;
+    };
+
+    AdjacencyList() noexcept : m_vertices(), m_edges() { }
+    AdjacencyList(const std::size_t numVertices) : m_vertices(numVertices), m_edges() { }
 
     std::size_t num_vertices() const
     {
-        return m_adjList.size();
+        return m_vertices.size();
+    }
+
+    std::size_t num_edges() const
+    {
+        return m_edges.size();
+    }
+
+    std::size_t add_vertex()
+    {
+        m_vertices.push_back(Vertex{});
+        return m_vertices.size() - 1;
+    }
+
+    std::vector<std::size_t> neighbors(const std::size_t index)
+    {
+        return m_vertices[index].neighbors;
+    }
+
+    Edge add_edge(const std::size_t source, const std::size_t target)
+    {
+        m_edges.emplace_back(source, target);
+        m_vertices[source].neighbors.push_back(target);
+        m_vertices[target].neighbors.push_back(source);
+        return m_edges.back();
+    }
+
+    void remove_vertex(const std::size_t index)
+    {
+        for(auto neighbor : neighbors(index))
+        {
+            std::erase(m_vertices[neighbor].neighbors, index);
+            remove_edge(index, neighbor);
+        }
+        m_vertices.erase(m_vertices.cbegin() + index);
+    }
+
+    void remove_edge(const std::size_t source, const std::size_t target)
+    {
+        std::erase_if(m_edges,
+                      [source, target](const Edge& edge){ return edge == Edge{source, target} 
+                                                              || edge == Edge{target, source}; });
     }
 
 private:
-    std::vector<std::vector<OutEdge>> m_adjList;
+    std::vector<Vertex> m_vertices;
+    std::vector<Edge> m_edges;
 };
 
 } // namespace netz
