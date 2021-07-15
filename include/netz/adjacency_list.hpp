@@ -2,6 +2,7 @@
 #define ADJACENCY_LIST_HPP
 
 #include <cstddef>
+#include <functional>
 #include <vector>
 
 namespace netz
@@ -14,6 +15,22 @@ public:
     struct Vertex
     {
         std::vector<std::size_t> neighbors;
+
+        struct Hash
+        {
+            auto operator()(const Vertex& vertex) const
+            {
+                // Hash combination from https://stackoverflow.com/a/27216842/605338.
+                // Using bit shifts and multiplicative inverse of the golden ratio as a
+                // constant (https://stackoverflow.com/questions/4948780/magic-number-in-boosthash-combine).
+                auto hash = vertex.neighbors.size();
+                for(const auto& n : vertex.neighbors)
+                {
+                    hash ^= std::hash<std::size_t>{}(n) + 0x9e3779b9 + (hash << 6) + (hash >> 2);
+                }
+                return hash;
+            }
+        };
     };
 
     struct Edge
@@ -22,6 +39,17 @@ public:
         std::size_t target;
         Edge(const std::size_t source, const std::size_t target) : source(source), target(target) { }
         bool operator<=>(const Edge&) const = default;
+
+        struct Hash
+        {
+            auto operator()(const Edge& edge) const
+            {
+                const auto h1 = std::hash<std::size_t>{}(edge.source);
+                const auto h2 = std::hash<std::size_t>{}(edge.target);
+                // Hash combination from https://en.cppreference.com/w/cpp/utility/hash
+                return h1 ^ (h2 << 1);
+            }
+        };
     };
 
     AdjacencyList() noexcept : m_vertices(), m_edges() { }
