@@ -10,4 +10,7 @@ TEST_CASE("Property map construction")
 
     netz::EdgeMap<int> edgeMap{g};
     netz::VertexMap<int> vertexMap{g};
+
+    REQUIRE(edgeMap.size() == 3);
+    REQUIRE(vertexMap.size() == 5);
 }

@@ -11,22 +11,39 @@ template<typename K, typename V>
 class PropertyMap
 {
 public:
-private:
+    auto size() const
+    {
+        return m_map.size();
+    }
+
+protected:
     std::unordered_map<K,V,typename K::Hash> m_map;
 };
 
 template<typename V>
-class EdgeMap : PropertyMap<AdjacencyList::Edge, V>
+class EdgeMap : public PropertyMap<AdjacencyList::Edge, V>
 {
 public:
-    EdgeMap(const AdjacencyList& g) { }
+    EdgeMap(const AdjacencyList& g) 
+    {
+        for(const auto edge : g.m_edges)
+        {
+            this->m_map.try_emplace(edge, V{});
+        }
+    }
 };
 
 template<typename V>
-class VertexMap : PropertyMap<AdjacencyList::Vertex, V>
+class VertexMap : public PropertyMap<AdjacencyList::Vertex, V>
 {
 public:
-    VertexMap(const AdjacencyList& g) { }
+    VertexMap(const AdjacencyList& g)
+    {
+        for(const auto vertex : g.m_vertices)
+        {
+            this->m_map.try_emplace(vertex, V{});
+        }
+    }
 };
 
 } // namespace netz

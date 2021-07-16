@@ -15,6 +15,7 @@ public:
     struct Vertex
     {
         std::vector<std::size_t> neighbors;
+        bool operator==(const Vertex&) const = default;
 
         struct Hash
         {
@@ -38,7 +39,7 @@ public:
         std::size_t source;
         std::size_t target;
         Edge(const std::size_t source, const std::size_t target) : source(source), target(target) { }
-        bool operator<=>(const Edge&) const = default;
+        bool operator==(const Edge&) const = default;
 
         struct Hash
         {
@@ -100,7 +101,12 @@ public:
                       [source, target](const Edge& edge){ return edge == Edge{source, target} 
                                                               || edge == Edge{target, source}; });
     }
+    
+    template<typename V>
+    friend class EdgeMap;
 
+    template<typename V>
+    friend class VertexMap;
 private:
     std::vector<Vertex> m_vertices;
     std::vector<Edge> m_edges;
