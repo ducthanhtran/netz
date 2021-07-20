@@ -91,3 +91,20 @@ TEST_CASE("Edge is adjacent to certain endpoint vertices")
     REQUIRE(e1.adjacentTo(1, 0));
     REQUIRE(!e1.adjacentTo(0, 2));
 }
+
+TEST_CASE("Hashes of vertices and edges")
+{
+    netz::AdjacencyList g{};
+    const auto v1 = g.add_vertex();
+    const auto v2 = g.add_vertex();
+    const auto v3 = g.add_vertex();
+
+    const auto e1 = g.add_edge(v1.id, v2.id);
+    const auto e2 = g.add_edge(v1.id, v3.id);
+
+    using vHash = netz::AdjacencyList::Vertex::Hash;
+    using eHash = netz::AdjacencyList::Edge::Hash;
+    REQUIRE(vHash{}(v1) != vHash{}(v2));
+    REQUIRE(vHash{}(v2) != vHash{}(v3));
+    REQUIRE(eHash{}(e1) != eHash{}(e2));
+}

@@ -18,6 +18,20 @@ public:
 
         Vertex(const std::size_t id) : id(id) { }
         bool operator==(const Vertex&) const = default;
+
+        struct Hash
+        {
+            auto operator()(const Vertex& vertex) const
+            {
+                auto seed = vertex.neighbors.size();
+                for(const auto& n : vertex.neighbors)
+                {
+                    seed ^= std::hash<std::size_t>{}(n) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+                }
+                seed ^= std::hash<std::size_t>{}(vertex.id) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+                return seed;
+            }
+        };
     };
 
     struct Edge
@@ -32,6 +46,17 @@ public:
             return (endpointA == source && endpointB == target) || (endpointA == target && endpointB == source);
         }
         bool operator==(const Edge&) const = default;
+
+        struct Hash
+        {
+            auto operator()(const Edge& edge) const
+            {
+                const auto h1 = std::hash<std::size_t>{}(edge.id);
+                const auto h2 = std::hash<std::size_t>{}(edge.source);
+                const auto h3 = std::hash<std::size_t>{}(edge.target);
+                return h1 ^ (h2 << 1) ^ (h3 << 2);
+            }
+        };
     };
 
     AdjacencyList() noexcept : m_vertices(), m_edges() { }
