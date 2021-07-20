@@ -13,19 +13,35 @@ public:
 
     struct Vertex
     {
+        std::size_t id;
         std::vector<std::size_t> neighbors;
+
+        Vertex(const std::size_t id) : id(id) { }
+        bool operator==(const Vertex&) const = default;
     };
 
     struct Edge
     {
+        std::size_t id;
         std::size_t source;
         std::size_t target;
-        Edge(const std::size_t source, const std::size_t target) : source(source), target(target) { }
-        bool operator<=>(const Edge&) const = default;
+
+        Edge(const std::size_t id, const std::size_t source, const std::size_t target) : id(id), source(source), target(target) { }
+        bool adjacentTo(const std::size_t endpointA, const std::size_t endpointB) const
+        {
+            return (endpointA == source && endpointB == target) || (endpointA == target && endpointB == source);
+        }
+        bool operator==(const Edge&) const = default;
     };
 
     AdjacencyList() noexcept : m_vertices(), m_edges() { }
-    AdjacencyList(const std::size_t numVertices) : m_vertices(numVertices), m_edges() { }
+    AdjacencyList(const std::size_t numVertices) : m_edges()
+    {
+        for(auto index = 0u; index < numVertices; ++index)
+        {
+            m_vertices.emplace_back(Vertex{num_vertices()});
+        }
+    }
 
     std::size_t num_vertices() const
     {
@@ -37,10 +53,10 @@ public:
         return m_edges.size();
     }
 
-    std::size_t add_vertex()
+    Vertex add_vertex()
     {
-        m_vertices.push_back(Vertex{});
-        return m_vertices.size() - 1;
+        m_vertices.emplace_back(Vertex{num_vertices()});
+        return m_vertices.back();
     }
 
     std::vector<std::size_t> neighbors(const std::size_t index)
@@ -50,9 +66,9 @@ public:
 
     Edge add_edge(const std::size_t source, const std::size_t target)
     {
-        m_edges.emplace_back(source, target);
-        m_vertices[source].neighbors.push_back(target);
-        m_vertices[target].neighbors.push_back(source);
+        m_edges.emplace_back(num_edges(), source, target);
+        m_vertices[source].neighbors.emplace_back(target);
+        m_vertices[target].neighbors.emplace_back(source);
         return m_edges.back();
     }
 
@@ -69,8 +85,7 @@ public:
     void remove_edge(const std::size_t source, const std::size_t target)
     {
         std::erase_if(m_edges,
-                      [source, target](const Edge& edge){ return edge == Edge{source, target} 
-                                                              || edge == Edge{target, source}; });
+                      [source, target](const Edge& edge){ return edge.adjacentTo(source, target); });
     }
 
 private:
@@ -79,5 +94,4 @@ private:
 };
 
 } // namespace netz
-
 #endif // ADJACENCY_LIST_HPP
