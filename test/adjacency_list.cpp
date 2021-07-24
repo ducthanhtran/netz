@@ -18,10 +18,11 @@ TEST_CASE("Adjacency list construction with zero initial vertices")
 TEST_CASE("Add vertices and return vertex index")
 {
     netz::AdjacencyList g{};
-    const auto numVertices = 12;
-    for(auto i = 0; i < numVertices; ++i)
+    const auto numVertices = 12u;
+    for(auto i = 0u; i < numVertices; ++i)
     {
-        REQUIRE(i == g.add_vertex());
+        const auto v = g.add_vertex();
+        REQUIRE(v.id == i);
         REQUIRE(g.neighbors(i).size() == 0);
     }
     REQUIRE(g.num_vertices() == numVertices);
@@ -30,9 +31,9 @@ TEST_CASE("Add vertices and return vertex index")
 TEST_CASE("Add edges to graph")
 {
     netz::AdjacencyList g{4};
-    const auto edge = g.add_edge(0, 1);
-    REQUIRE(edge.source == 0);
-    REQUIRE(edge.target == 1);
+    const auto e = g.add_edge(0, 1);
+    REQUIRE(e.source == 0);
+    REQUIRE(e.target == 1);
     REQUIRE(g.num_edges() == 1);
     
     SUBCASE("Neighbor indices")
@@ -49,17 +50,17 @@ TEST_CASE("Add edges to graph")
 TEST_CASE("Remove undirected edge")
 {
     netz::AdjacencyList g{3};
-    const auto edge = g.add_edge(1, 2);
+    const auto e = g.add_edge(1, 2);
 
     SUBCASE("Undirected case A")
     {
-        g.remove_edge(edge.source, edge.target);
+        g.remove_edge(e.source, e.target);
         REQUIRE(g.num_edges() == 0);
     }
 
     SUBCASE("Undirected case B")
     {
-        g.remove_edge(edge.target, edge.source);
+        g.remove_edge(e.target, e.source);
         REQUIRE(g.num_edges() == 0);
     }
 }
@@ -79,4 +80,31 @@ TEST_CASE("Remove vertex")
 
     REQUIRE(g.num_vertices() == 3);
     REQUIRE(g.num_edges() == 0);
+}
+
+TEST_CASE("Edge is adjacent to certain endpoint vertices")
+{
+    netz::AdjacencyList g{3};
+    const auto e1 = g.add_edge(0, 1);
+
+    REQUIRE(e1.adjacentTo(0, 1));
+    REQUIRE(e1.adjacentTo(1, 0));
+    REQUIRE(!e1.adjacentTo(0, 2));
+}
+
+TEST_CASE("Hashes of vertices and edges")
+{
+    netz::AdjacencyList g{};
+    const auto v1 = g.add_vertex();
+    const auto v2 = g.add_vertex();
+    const auto v3 = g.add_vertex();
+
+    const auto e1 = g.add_edge(v1.id, v2.id);
+    const auto e2 = g.add_edge(v1.id, v3.id);
+
+    using vHash = netz::AdjacencyList::Vertex::Hash;
+    using eHash = netz::AdjacencyList::Edge::Hash;
+    REQUIRE(vHash{}(v1) != vHash{}(v2));
+    REQUIRE(vHash{}(v2) != vHash{}(v3));
+    REQUIRE(eHash{}(e1) != eHash{}(e2));
 }
